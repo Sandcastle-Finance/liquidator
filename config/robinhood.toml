@@ -1,0 +1,31 @@
+# Robinhood Chain. Every market and position is discovered on-chain from these addresses.
+chain_id = 4663
+name = "robinhood"
+rpc_url = "https://rpc.mainnet.chain.robinhood.com"
+hypersync_url = "https://4663.hypersync.xyz"
+# Largest block span the RPC accepts in one eth_getLogs request: for a single address, and
+# for several addresses at once.
+max_log_range = 10_000_000
+max_log_range_multi = 100_000
+
+morpho = "0x9D53d5E3bd5E8d4Cbfa6DB1ca238AEA02E651010"
+bundler3 = "0x2D62fD444c0cB10080EAc2766fdaF466Fe3dd97E"
+general_adapter1 = "0x75eB04100C747aaB1d62888A37Ec92aD830EBe9E"
+swap_adapter = "0x2e0955269B2F595ceb07Aa7FA76Eb7f563Ef8360"
+multicall3 = "0xcA11bde05977b3631167028862bE2a173976CA11"
+wrapped_native = "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73"
+# Routers the SwapAdapter swaps through. Without a router, cores on that AMM cannot use the
+# same-pool route.
+universal_router = "0x8876789976dEcBfCbBbe364623C63652db8C0904"
+# slipstream_router = ""
+
+# Optional: sell seized tokens through the KyberSwap aggregator. `router` is the only address
+# the bot will accept from the API.
+[kyberswap]
+chain = "robinhood"
+router = "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5"
+
+# The FactoryFactory. Add another [[factories]] block to watch more than one.
+[[factories]]
+address = "0x47ff3DCDEceb3D03da44C4a60d25B36654D3c010"
+start_block = 119_757_091

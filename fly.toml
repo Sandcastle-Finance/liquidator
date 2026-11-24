@@ -1,0 +1,23 @@
+# A single always-on worker. It serves nothing, so there is no HTTP service, and it keeps no
+# state: discovery is rebuilt from chain logs on every start.
+app = "sandcastle-liquidation-bot"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  CHAIN = "robinhood"
+  LOG_SOURCE = "rpc"
+  POLL_SECONDS = "10"
+  MAX_SLIPPAGE_BPS = "100"
+  MIN_PROFIT_BPS = "10"
+  # Secrets, set with `fly secrets set`: PRIVATE_KEY, and ARM=1 to send transactions.
+  # Optional secrets: RPC_URL (a private endpoint), ENVIO_API_TOKEN.
+
+[[restart]]
+  policy = "always"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
