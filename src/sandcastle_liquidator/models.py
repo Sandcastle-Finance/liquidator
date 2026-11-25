@@ -36,13 +36,21 @@ class KyberSwapConfig:
 
 
 @dataclass(frozen=True)
+class RpcEndpoint:
+    """An RPC URL and the widest block span it accepts in one `eth_getLogs` request: for a
+    single address, and for several addresses at once."""
+
+    url: str
+    max_log_range: int
+    max_log_range_multi: int
+
+
+@dataclass(frozen=True)
 class ChainConfig:
     chain_id: int
     name: str
-    rpc_url: str
+    rpcs: tuple[RpcEndpoint, ...]
     hypersync_url: str
-    max_log_range: int
-    max_log_range_multi: int
     morpho: ChecksumAddress
     bundler3: ChecksumAddress
     general_adapter1: ChecksumAddress

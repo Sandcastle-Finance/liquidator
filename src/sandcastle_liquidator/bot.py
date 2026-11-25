@@ -22,7 +22,7 @@ class MissingApiTokenError(Exception):
 class Bot:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.chain = Chain(settings.chain, settings.rpc_url)
+        self.chain = Chain(settings.chain)
         self.chain.verify()
         self.discovery = Discovery(self.chain, self.log_source())
         self.health = HealthChecker(self.chain)

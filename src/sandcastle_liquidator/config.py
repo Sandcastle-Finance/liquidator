@@ -1,6 +1,7 @@
 """Settings from the environment and the per-chain TOML file."""
 
 import os
+import re
 import tomllib
 from dataclasses import dataclass
 from enum import StrEnum
@@ -10,9 +11,10 @@ from typing import Any
 from eth_typing import ChecksumAddress
 from eth_utils.address import to_checksum_address
 
-from sandcastle_liquidator.models import ChainConfig, Factory, KyberSwapConfig
+from sandcastle_liquidator.models import ChainConfig, Factory, KyberSwapConfig, RpcEndpoint
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config"
+ENV_REFERENCE = re.compile(r"\$\{(\w+)\}")
 
 
 class LogSourceKind(StrEnum):
@@ -23,7 +25,6 @@ class LogSourceKind(StrEnum):
 @dataclass(frozen=True)
 class Settings:
     chain: ChainConfig
-    rpc_url: str
     log_source: LogSourceKind
     envio_api_token: str
     poll_seconds: float
@@ -38,7 +39,6 @@ class Settings:
         chain = load_chain(CONFIG_DIR / f"{os.environ.get('CHAIN', 'robinhood')}.toml")
         return cls(
             chain=chain,
-            rpc_url=os.environ.get("RPC_URL") or chain.rpc_url,
             log_source=LogSourceKind(os.environ.get("LOG_SOURCE") or "rpc"),
             envio_api_token=os.environ.get("ENVIO_API_TOKEN", ""),
             poll_seconds=float(os.environ.get("POLL_SECONDS") or 10),
@@ -58,10 +58,8 @@ def load_chain(path: Path) -> ChainConfig:
     return ChainConfig(
         chain_id=int(raw["chain_id"]),
         name=str(raw["name"]),
-        rpc_url=str(raw["rpc_url"]),
+        rpcs=load_rpcs(raw["rpcs"]),
         hypersync_url=str(raw["hypersync_url"]),
-        max_log_range=int(raw["max_log_range"]),
-        max_log_range_multi=int(raw["max_log_range_multi"]),
         morpho=to_checksum_address(raw["morpho"]),
         bundler3=to_checksum_address(raw["bundler3"]),
         general_adapter1=to_checksum_address(raw["general_adapter1"]),
@@ -78,6 +76,30 @@ def load_chain(path: Path) -> ChainConfig:
             for f in raw["factories"]
         ),
     )
+
+
+class NoRpcError(Exception):
+    pass
+
+
+def load_rpcs(raw: list[dict[str, Any]]) -> tuple[RpcEndpoint, ...]:
+    """The endpoints in the order they are tried. One whose URL names an environment variable
+    that is not set, such as an API key, is left out."""
+    endpoints = tuple(
+        RpcEndpoint(url, int(rpc["max_log_range"]), int(rpc["max_log_range_multi"]))
+        for rpc in raw
+        if (url := expand_env(str(rpc["url"]))) is not None
+    )
+    if not endpoints:
+        raise NoRpcError("the chain config has no usable RPC endpoint")
+    return endpoints
+
+
+def expand_env(text: str) -> str | None:
+    """Fills each `${NAME}` from the environment, or returns None when one is not set."""
+    if any(not os.environ.get(name) for name in ENV_REFERENCE.findall(text)):
+        return None
+    return ENV_REFERENCE.sub(lambda match: os.environ[match[1]], text)
 
 
 def optional_address(value: str | None) -> ChecksumAddress | None:

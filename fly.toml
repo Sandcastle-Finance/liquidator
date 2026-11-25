@@ -13,7 +13,7 @@ primary_region = "ord"
   MAX_SLIPPAGE_BPS = "100"
   MIN_PROFIT_BPS = "10"
   # Secrets, set with `fly secrets set`: PRIVATE_KEY, and ARM=1 to send transactions.
-  # Optional secrets: RPC_URL (a private endpoint), ENVIO_API_TOKEN.
+  # Optional secrets: BLOCKMACHINE_API_KEY and ALCHEMY_API_KEY (backup RPCs), ENVIO_API_TOKEN.
 
 [[restart]]
   policy = "always"

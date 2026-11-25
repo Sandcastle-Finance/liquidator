@@ -82,7 +82,7 @@ set -a; source .env; set +a
 |---|---|
 | `PRIVATE_KEY` | The liquidating EOA. Without it the bot only simulates. |
 | `ARM` | `1` sends transactions. Anything else is a dry run. |
-| `RPC_URL` | Overrides the public RPC. A private endpoint is strongly recommended. |
+| `BLOCKMACHINE_API_KEY`, `ALCHEMY_API_KEY` | Optional. Each adds that provider as a backup RPC. See [RPC endpoints](#rpc-endpoints). |
 | `MAX_SLIPPAGE_BPS` | Allowed swap slippage, default 100 (1%). |
 | `MIN_PROFIT_BPS` | Minimum simulated profit as a share of the flash loan, default 10. |
 | `LOG_SOURCE` | `rpc` (default) or `hypersync`, which also needs `ENVIO_API_TOKEN`. |
@@ -103,6 +103,20 @@ accumulates in the EOA in each market's loan token.
 Use a dedicated key that holds only gas. Run one instance per key: two would race each other
 on the same nonce.
 
+### RPC endpoints
+
+The chain file lists the RPC endpoints in the order they are tried. A request that fails on one
+(an outage, a timeout, a rate limit) goes to the next, and the failed endpoint is passed over
+for a minute. Transactions follow the same order.
+
+Robinhood Chain's public endpoint is first and needs no key. Blockmachine and Alchemy follow,
+each only when its API key is set. Run with at least one backup: with the public endpoint
+alone, an outage there stops the bot.
+
+Each endpoint also states the widest block span it accepts in one `eth_getLogs` request, and
+log queries are split to fit. To add or reorder endpoints, edit the `[[rpcs]]` blocks in
+`config/<chain>.toml`.
+
 ### With Docker
 
 ```sh
@@ -121,7 +135,7 @@ its name.
 
 ```sh
 fly launch --copy-config --no-deploy      # once, to create the app under your account
-fly secrets set PRIVATE_KEY=0x...         # the liquidating EOA; add RPC_URL for a private RPC
+fly secrets set PRIVATE_KEY=0x...         # the liquidating EOA; add the backup RPC keys too
 fly deploy                                # starts as a dry run
 fly logs                                  # check the liquidator address and the scans
 fly secrets set ARM=1                     # go live

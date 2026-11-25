@@ -1,12 +1,7 @@
 # Robinhood Chain. Every market and position is discovered on-chain from these addresses.
 chain_id = 4663
 name = "robinhood"
-rpc_url = "https://rpc.mainnet.chain.robinhood.com"
 hypersync_url = "https://4663.hypersync.xyz"
-# Largest block span the RPC accepts in one eth_getLogs request: for a single address, and
-# for several addresses at once.
-max_log_range = 10_000_000
-max_log_range_multi = 100_000
 
 morpho = "0x9D53d5E3bd5E8d4Cbfa6DB1ca238AEA02E651010"
 bundler3 = "0x2D62fD444c0cB10080EAc2766fdaF466Fe3dd97E"
@@ -29,3 +24,22 @@ router = "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5"
 [[factories]]
 address = "0x47ff3DCDEceb3D03da44C4a60d25B36654D3c010"
 start_block = 119_757_091
+
+# RPC endpoints, tried in this order: a request that fails on one goes to the next. Each has
+# the widest block span it accepts in one eth_getLogs request, for a single address
+# (`max_log_range`) and for several at once (`max_log_range_multi`). `${NAME}` is read from
+# the environment, and an endpoint whose variable is not set is left out.
+[[rpcs]]
+url = "https://rpc.mainnet.chain.robinhood.com"
+max_log_range = 10_000_000
+max_log_range_multi = 100_000
+
+[[rpcs]]
+url = "https://rpc-robinhood.blockmachine.io/?authorization=${BLOCKMACHINE_API_KEY}"
+max_log_range = 10_000
+max_log_range_multi = 10_000
+
+[[rpcs]]
+url = "https://robinhood-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+max_log_range = 3_000_000
+max_log_range_multi = 3_000_000
